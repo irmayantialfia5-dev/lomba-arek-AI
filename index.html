@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Buku Mantra Pemecah Masalah</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+    font-family: Arial;
+    background: #ffccff;
+    padding: 20px;
+}
+.wrap {
+    max-width: 800px;
+    margin: auto;
+}
+.card {
+    background: rgb(255, 255, 255);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+textarea {
+    width: 100%;
+    height: 110px;
+    padding: 10px;
+    border-radius: 10px;
+}
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+button {
+    background: #ff7b7b;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 12px;
+}
+button:hover {
+    background: #ff5f5f;
+}
+.title {
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+.solution-block {
+    background: #fff3e6;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 14px;
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+    <h1>🔮 Buku Mantra Pemecah Masalah</h1>
+
+    <div class="card">
+        <label>Nama Kamu:</label>
+        <input type="text" id="nama" placeholder="Masukkan nama kamu">
+
+        <label>Tanggal:</label>
+        <input type="date" id="tanggal">
+    </div>
+
+    <div class="card">
+        <label>Ceritakan Masalahmu:</label>
+        <textarea id="inputMasalah" placeholder="Tulis masalahmu di sini..."></textarea>
+
+        <label>Pilih Jenis Masalah:</label>
+        <select id="kategori">
+            <option value="teman">Masalah Teman</option>
+            <option value="keluarga">Masalah Keluarga</option>
+            <option value="tugas">Masalah Tugas/Sekolah</option>
+            <option value="cinta">Masalah Cinta</option>
+            <option value="cemas">Cemas / Overthinking</option>
+            <option value="lain">Masalah Umum Lainnya</option>
+        </select>
+
+        <button onclick="proses()">✨ Pecahkan Masalah</button>
+    </div>
+
+    <div id="hasil"></div>
+
+</div>
+
+<script>
+/* ==============================
+   DATABASE SOLUSI
+============================== */
+
+const SOLUSI = {
+    teman: {
+        penyebab: ["Salah paham", "Kurang komunikasi", "Perasaan sensitif"],
+        langkahCepat: ["Tarik napas", "Jelaskan perlahan", "Jangan buru-buru menyimpulkan"],
+        mendalam: [
+            "Ajak bicara berdua tanpa gangguan",
+            "Sampaikan apa yang kamu rasakan tanpa menyalahkan",
+            "Dengarkan sudut pandang mereka"
+        ],
+        planB: ["Beri waktu beberapa hari", "Tulis pesan yang sopan"],
+        mantra: "Aku menjaga persahabatanku dengan hati yang lembut."
+    },
+
+    keluarga: {
+        penyebab: ["Beban pikiran", "Kurang waktu bersama"],
+        langkahCepat: ["Tenangkan diri", "Coba memahami posisi mereka"],
+        mendalam: ["Buat suasana rumah lebih tenang", "Sampaikan apa yang kamu rasakan"],
+        planB: ["Minta bantuan anggota keluarga lain"],
+        mantra: "Aku menguatkan keluargaku sedikit demi sedikit."
+    },
+
+    tugas: {
+        penyebab: ["Menunda pekerjaan", "Terlalu banyak tugas"],
+        langkahCepat: ["Buat daftar tugas", "Kerjakan yang termudah dulu"],
+        mendalam: ["Atur jadwal belajar", "Kurangi distraksi"],
+        planB: ["Minta penjelasan ulang dari guru"],
+        mantra: "Aku mampu menyelesaikan tugas dengan teratur."
+    },
+
+    cinta: {
+        penyebab: ["Cemburu", "Kurang percaya diri", "Kurang komunikasi"],
+        langkahCepat: ["Tenangkan diri", "Tidak mengambil keputusan saat emosi"],
+        mendalam: ["Bangun komunikasi sehat", "Hargai batas pribadi"],
+        planB: ["Ambil jeda untuk refleksi"],
+        mantra: "Aku layak dicintai tanpa rasa takut."
+    },
+
+    cemas: {
+        penyebab: ["Overthinking", "Takut salah"],
+        langkahCepat: ["Minum air", "Tarik napas 4 detik"],
+        mendalam: ["Menulis pikiran", "Menyusun rencana"],
+        planB: ["Ceritakan pada orang terpercaya"],
+        mantra: "Aku aman. Aku mampu. Aku cukup."
+    },
+
+    lain: {
+        penyebab: ["Kurang istirahat", "Beban pikiran"],
+        langkahCepat: ["Istirahat sebentar", "Minum air"],
+        mendalam: ["Buat rencana pelan-pelan", "Minta bantuan jika perlu"],
+        planB: ["Cari solusi alternatif"],
+        mantra: "Setiap masalah punya jalan keluar."
+    }
+};
+
+
+/* ==============================
+   SIMPAN NAMA & TANGGAL OTOMATIS
+============================== */
+
+// Simpan saat mengetik nama
+document.getElementById("nama").addEventListener("input", function () {
+    localStorage.setItem("namaPengguna", this.value);
+});
+
+// Simpan saat memilih tanggal
+document.getElementById("tanggal").addEventListener("change", function () {
+    localStorage.setItem("tanggalPengguna", this.value);
+});
+
+// Muat nama & tanggal saat halaman dibuka
+window.onload = function () {
+    const savedName = localStorage.getItem("namaPengguna");
+    const savedDate = localStorage.getItem("tanggalPengguna");
+
+    if (savedName) document.getElementById("nama").value = savedName;
+    if (savedDate) document.getElementById("tanggal").value = savedDate;
+};
+
+
+/* ==============================
+   FUNGSI UTAMA
+============================== */
+
+function proses() {
+    const nama = document.getElementById("nama").value.trim();
+    const tanggal = document.getElementById("tanggal").value;
+    const teks = document.getElementById("inputMasalah").value.trim();
+    const kat = document.getElementById("kategori").value;
+    const box = document.getElementById("hasil");
+
+    if (nama === "") {
+        alert("Isi nama dulu ya 😊");
+        return;
+    }
+
+    // Simpan nama juga saat tombol ditekan (lebih kuat)
+    localStorage.setItem("namaPengguna", nama);
+
+    if (tanggal === "") {
+        alert("Pilih tanggal dulu ya 📅");
+        return;
+    }
+
+    if (teks.length < 5) {
+        alert("Tuliskan masalahnya dulu ya 😊");
+        return;
+    }
+
+    const s = SOLUSI[kat];
+
+    box.innerHTML = `
+    <div class="card">
+        <h2>📘 Hasil Mantra Pemecah Masalah</h2>
+        <p><b>Nama:</b> ${nama}</p>
+        <p><b>Tanggal:</b> ${tanggal}</p>
+        <p><b>Masalah:</b> ${teks}</p>
+
+        <div class="solution-block">
+            <div class="title">🔍 Kemungkinan Penyebab:</div>
+            <ul>${s.penyebab.map(x => `<li>${x}</li>`).join("")}</ul>
+        </div>
+
+        <div class="solution-block">
+            <div class="title">⚡ Langkah Cepat:</div>
+            <ul>${s.langkahCepat.map(x => `<li>${x}</li>`).join("")}</ul>
+        </div>
+
+        <div class="solution-block">
+            <div class="title">🧠 Solusi Mendalam:</div>
+            <ul>${s.mendalam.map(x => `<li>${x}</li>`).join("")}</ul>
+        </div>
+
+        <div class="solution-block">
+            <div class="title">🔄 Plan B (Alternatif):</div>
+            <ul>${s.planB.map(x => `<li>${x}</li>`).join("")}</ul>
+        </div>
+
+        <div class="solution-block">
+            <div class="title">💬 Mantra Penguat Diri:</div>
+            <p><i>"${s.mantra}"</i></p>
+        </div>
+    </div>
+    `;
+}
+</script>
+
+</body>
+</html>
